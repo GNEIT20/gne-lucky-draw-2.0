@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>GNE Lucky Draw</title>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      overflow: hidden;
+      background-image: url('bg.png');
+      background-size: cover;
+      background-position: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    .intro-screen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      z-index: 9999;
+    }
+
+    .intro-bg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 1;
+    }
+
+    .intro-button-img {
+      position: fixed;
+      bottom: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: none;
+      border: none;
+      z-index: 10;
+      cursor: pointer;
+      animation: fadeIn 1s ease-out forwards;
+      animation-delay: 1.2s;
+    }
+
+    .next-btn-img {
+      width: 350px;
+      max-width: 90%;
+      transition: transform 0.2s ease;
+    }
+
+    .intro-button-img:hover .next-btn-img {
+      transform: scale(1.05);
+    }
+
+    @keyframes logoPop {
+      0% { opacity: 0; transform: scale(0.8); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    @keyframes fadeIn { to { opacity: 1; } }
+
+    .start-screen {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      z-index: 2;
+      max-width: 90%;
+      padding: 40px 20px;
+      box-sizing: border-box;
+      display: none;
+    }
+
+    .logo, .title, .start-img {
+      filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.3));
+      max-width: 100%;
+      opacity: 0;
+      transform: scale(0.95);
+      animation: fadeInPop 0.8s ease forwards;
+    }
+
+    .logo {
+      width: 280px;
+      animation-delay: 0.2s;
+    }
+
+    .title {
+      width: 1000px;
+      max-width: 100%;
+      animation-delay: 0.4s;
+    }
+
+    .start-button {
+      background: none;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+      animation: fadeInPop 0.8s ease forwards;
+      animation-delay: 0.6s;
+    }
+
+    .start-button:hover {
+      transform: scale(1.05);
+    }
+
+    .start-img {
+      width: 320px;
+      animation-delay: 0.6s;
+    }
+
+    @keyframes fadeInPop {
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .wheel-screen {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  padding-top: 40px; /* ✅ Add this line to push everything down */
+}
+
+    .wheel-area {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 50px;
+      flex-wrap: wrap;
+    }
+
+    .wheel-container {
+      position: relative;
+      width: 600px;
+      height: 600px;
+    }
+
+    .wheel-wrapper {
+  padding-top: 60px; /* Adjust this value to lower everything */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+    .wheel {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      border: 5px solid #333;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+      transition: transform 12s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .segment {
+      position: absolute;
+      width: 50%;
+      height: 50%;
+      transform-origin: 100% 100%;
+      left: 0;
+      top: 0;
+      border-right: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .arrow {
+      position: absolute;
+      top: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 30px;
+      color: red;
+      z-index: 10;
+    }
+
+    .winner-display {
+      display: none;
+    }
+
+    .button-row {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .custom-btn {
+      background: none;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+    }
+
+    .custom-btn img {
+      height: 200px;
+      transition: transform 0.2s ease;
+    }
+
+    .custom-btn:hover img {
+      transform: scale(1.05);
+    }
+
+    .name-input {
+      width: 300px;
+      height: 500px;
+      padding: 10px;
+      font-size: 14px;
+      border: 2px solid #333;
+      border-radius: 8px;
+      resize: vertical;
+    }
+
+    .winner-popup {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+    }
+
+    .popup-box {
+      position: relative;
+      background: #fff;
+      color: #001f4e;
+      font-size: 28px;
+      padding: 30px 40px;
+      border-radius: 20px;
+      font-weight: bold;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+      text-align: center;
+      animation: popScale 0.5s ease;
+      max-width: 90%;
+      width: 600px;
+      line-height: 1.4;
+      word-wrap: break-word;
+    }
+
+    .close-button {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      background: none;
+      border: none;
+      font-size: 24px;
+      font-weight: bold;
+      color: #888;
+      cursor: pointer;
+    }
+
+    .close-button:hover {
+      color: red;
+    }
+
+    @keyframes popScale {
+      0% { transform: scale(0.5); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    @media (max-width: 600px) {
+      .title { width: 95%; }
+      .start-img { width: 80%; }
+      .wheel-area { flex-direction: column; }
+      .name-input { width: 90%; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Intro Screen -->
+  <div class="intro-screen" id="introScreen">
+    <img src="intro.png" class="intro-bg" alt="Intro Background" />
+    <button class="intro-button-img" id="goToStart">
+      <img src="next.png" alt="Next" class="next-btn-img" />
+    </button>
+  </div>
+
+  <!-- Start Screen -->
+  <div class="start-screen" id="startScreen">
+    <img src="logo.png" alt="GNE Logo" class="logo">
+    <img src="title.png" alt="GNE Lucky Draw Title" class="title">
+    <button class="start-button" id="startButton">
+      <img src="start button.png" alt="Start" class="start-img">
+    </button>
+  </div>
+
+  <!-- Wheel Scene -->
+  <div class="wheel-screen" id="wheelScreen">
+    <div class="wheel-wrapper">
+      <div class="wheel-area">
+        <div class="wheel-container">
+          <div class="wheel" id="wheel"></div>
+          <div class="arrow">↓</div>
+        </div>
+        <textarea class="name-input" id="nameInput" placeholder="Enter names here, one per line..."></textarea>
+      </div>
+      <div class="winner-display" id="winnerDisplay"></div>
+      <div class="button-row">
+        <button class="custom-btn" id="spinButton"><img src="spinn.png" alt="Spin"></button>
+        <button class="custom-btn" onclick="clearNames()"><img src="clear.png" alt="Clear"></button>
+      </div>    
+   </div>
+
+  <!-- Winner Popup -->
+  <div id="winnerPopup" class="winner-popup">
+    <div class="popup-box">
+      <button class="close-button" onclick="closePopup()">✖</button>
+      ✨ Tahniah,  <span id="winnerNameText"></span> ! Anda menang Umrah atau trip Jepun bernilai RM10,000. 🎉
+    </div>
+  </div>
+
+  <audio id="winSound" src="https://www.soundjay.com/human/sounds/applause-8.mp3"></audio>
+  <audio id="countdownSound" src="10sec-countdown-bell-sound-79584.mp3"></audio>
+  <audio id="spinSound" src="https://cdn.pixabay.com/audio/2023/09/19/audio_0d6aa6a8c3.mp3" loop></audio>
+
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <script>
+    const COLORS = ["#ff3838", "#ff9f1a", "#fff200", "#32ff7e", "#18dcff", "#7d5fff", "#e84393"];
+    const SEGMENT_COUNT = 50;
+    let rotation = 0;
+    let isSpinning = false;
+
+    window.onload = () => {
+      document.getElementById("introScreen").style.display = "flex";
+      document.getElementById("startScreen").style.display = "none";
+      document.getElementById("wheelScreen").style.display = "none";
+    };
+
+    document.getElementById("goToStart").onclick = () => {
+      document.getElementById("introScreen").style.display = "none";
+      document.getElementById("startScreen").style.display = "flex";
+    };
+
+    document.getElementById("startButton").onclick = () => {
+      document.getElementById("startScreen").style.display = "none";
+      document.getElementById("wheelScreen").style.display = "flex";
+      drawWheel();
+    };
+
+    document.getElementById("spinButton").onclick = () => {
+      if (isSpinning) return;
+
+      const names = getNames();
+      if (names.length === 0) return alert("Please enter names.");
+
+      const winnerDisplay = document.getElementById("winnerDisplay");
+      winnerDisplay.textContent = "";
+      winnerDisplay.classList.remove("show");
+
+      const spinSound = document.getElementById("spinSound");
+      spinSound.currentTime = 0;
+      spinSound.play();
+
+      const countdownSound = document.getElementById("countdownSound");
+      countdownSound.currentTime = 0;
+      countdownSound.play();
+
+      const winnerIndex = Math.floor(Math.random() * names.length);
+      const spinDegrees = 360 * 10 + Math.floor(Math.random() * 360);
+      rotation += spinDegrees;
+      isSpinning = true;
+
+      document.getElementById("wheel").style.transform = `rotate(${rotation}deg)`;
+
+      setTimeout(() => {
+        spinSound.pause();
+        const winner = names[winnerIndex];
+        const nameInput = document.getElementById("nameInput");
+        let updatedNames = names.filter((n, i) => i !== winnerIndex);
+        nameInput.value = updatedNames.join("\n");
+
+        document.getElementById("winnerNameText").textContent = winner;
+        document.getElementById("winnerPopup").style.display = "flex";
+
+        document.getElementById("winSound").play();
+        confetti({ particleCount: 200, spread: 70, origin: { y: 0.6 } });
+        isSpinning = false;
+      }, 12000);
+    };
+
+    function closePopup() {
+      document.getElementById("winnerPopup").style.display = "none";
+    }
+
+    function clearNames() {
+      document.getElementById("nameInput").value = "";
+    }
+
+    function getNames() {
+      const raw = document.getElementById("nameInput").value.trim();
+      return raw.split(/\r?\n/).filter(n => n);
+    }
+
+    function drawWheel() {
+      const wheel = document.getElementById("wheel");
+      wheel.innerHTML = "";
+      const angle = 360 / SEGMENT_COUNT;
+      for (let i = 0; i < SEGMENT_COUNT; i++) {
+        const seg = document.createElement("div");
+        seg.className = "segment";
+        seg.style.transform = `rotate(${i * angle}deg) skewY(${90 - angle}deg)`;
+        seg.style.background = COLORS[i % COLORS.length];
+        wheel.appendChild(seg);
+      }
+    }
+  </script>
+</body>
+</html>
