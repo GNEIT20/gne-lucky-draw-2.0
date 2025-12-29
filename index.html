@@ -158,16 +158,17 @@
   align-items: center;
 }
 
-    .wheel {
-      width: 100%;
-      height: 100%;
-      border-radius: 50%;
-      border: 5px solid #333;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-      transition: transform 30s cubic-bezier(0.17, 0.67, 0.12, 0.99);
-      overflow: hidden;
-      position: relative;
-    }
+ .wheel {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 5px solid #333;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  transition: transform 0s linear; /* JS controls animation */
+  overflow: hidden;
+  position: relative;
+}
+
 
     .segment {
       position: absolute;
@@ -330,7 +331,7 @@
   </div>
 
   <audio id="winSound" src="applause whistle.mp3"></audio>
-  <audio id="countdownSound" src="30 sec.MP3"></audio>
+  <audio id="countdownSound" src="50 s.MP3"></audio>
   <audio id="spinSound" src="https://cdn.pixabay.com/audio/2023/09/19/audio_0d6aa6a8c3.mp3" loop></audio>
 
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -340,6 +341,10 @@
     const SEGMENT_COUNT = 50;
     let rotation = 0;
     let isSpinning = false;
+    const FAST_SPIN_TIME = 40000; // fast spin
+    const MID_SPIN_TIME  = 9000;  // suspense spin
+    const SNAP_TIME      = 1000;  // snap stop
+    const TOTAL_SPIN_TIME = FAST_SPIN_TIME + MID_SPIN_TIME + SNAP_TIME;
 
     window.onload = () => {
       document.getElementById("introScreen").style.display = "flex";
@@ -377,27 +382,65 @@
       countdownSound.play();
 
       const winnerIndex = Math.floor(Math.random() * names.length);
-      const spinDegrees = 360 * 60 + Math.floor(Math.random() * 360);
-      rotation += spinDegrees;
-      isSpinning = true;
+      const wheel = document.getElementById("wheel");
+const startRotation = rotation;
 
-      document.getElementById("wheel").style.transform = `rotate(${rotation}deg)`;
+const fastSpinDegrees = 360 * 60;
+const midExtraDegrees = 360 * 8;
+const snapExtraDegrees = 90 + Math.floor(Math.random() * 270);
+
+const midRotation   = startRotation + fastSpinDegrees;
+const snapRotation  = midRotation + midExtraDegrees;
+const finalRotation = snapRotation + snapExtraDegrees;
+
+rotation = finalRotation;
+isSpinning = true;
+
+wheel.style.transition = "none";
+wheel.style.transform = `rotate(${startRotation}deg)`;
+
+requestAnimationFrame(() => {
+  wheel.style.transition =
+    `transform ${FAST_SPIN_TIME / 1000}s linear`;
+  wheel.style.transform = `rotate(${midRotation}deg)`;
+
+  setTimeout(() => {
+    wheel.style.transition =
+      `transform ${MID_SPIN_TIME / 1000}s linear`;
+    wheel.style.transform = `rotate(${snapRotation}deg)`;
+
+    setTimeout(() => {
+      wheel.style.transition =
+        `transform ${SNAP_TIME / 1000}s cubic-bezier(0.05,0.9,0.1,1)`;
+      wheel.style.transform = `rotate(${finalRotation}deg)`;
+    }, MID_SPIN_TIME);
+  }, FAST_SPIN_TIME);
+});
 
       setTimeout(() => {
-        spinSound.pause();
-        const winner = names[winnerIndex];
-        const nameInput = document.getElementById("nameInput");
-        let updatedNames = names.filter((n, i) => i !== winnerIndex);
-        nameInput.value = updatedNames.join("\n");
+  spinSound.pause();
+  const winner = names[winnerIndex];
+  const nameInput = document.getElementById("nameInput");
 
-        document.getElementById("winnerNameText").textContent = winner;
-        document.getElementById("winnerPopup").style.display = "flex";
+  let removed = false;
+  let updatedNames = names.filter(n => {
+    if (!removed && n === winner) {
+      removed = true;
+      return false;
+    }
+    return true;
+  });
+  nameInput.value = updatedNames.join("\n");
 
-        document.getElementById("winSound").play();
-        confetti({ particleCount: 200, spread: 70, origin: { y: 0.6 } });
-        isSpinning = false;
-      }, 30000);
-    };
+  document.getElementById("winnerNameText").textContent = winner;
+  document.getElementById("winnerPopup").style.display = "flex";
+
+  document.getElementById("winSound").play();
+  confetti({ particleCount: 200, spread: 70, origin: { y: 0.6 } });
+  isSpinning = false;
+}, TOTAL_SPIN_TIME);
+
+      };
 
     function closePopup() {
       document.getElementById("winnerPopup").style.display = "none";
